@@ -52,7 +52,7 @@ function sectigo_delegate_domain() {
             -H "customerUri: ${CUSTOMER_URI}" \
             -H 'Content-Type: application/json;charset=utf-8' \
             -H "login: ${LOGIN}" \
-            -H "password: ${PASSWORD}" \
+            -H @<(echo "password: ${PASSWORD}") \
             -d '{"name":"'*."$1"'","description":"created by script","active":true,"delegations":[{"orgId":6249,"certTypes":["SSL"]}]}'
     )
     if ! [ -z ${DEBUG+x} ]; then
@@ -71,7 +71,7 @@ function cloudflare_delete_cname() {
    # ZONEID = $2
    OUTPUT=$(
     curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/$2/dns_records/$1" \
-        -H "Authorization: Bearer ${CFBEARER}" \
+        -H @<(echo "Authorization: Bearer ${CFBEARER})" \
         -H "Content-Type:application/json"
    )
    if [ "$(jq -r '.success' <<<"${OUTPUT}")" == "true" ]; then
@@ -94,7 +94,7 @@ fi
 # Get Zone ID from Domain in Cloudflare
 OUTPUT=$(
     curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN" \
-        -H "Authorization: Bearer ${CFBEARER}" \
+        -H @<(echo "Authorization: Bearer ${CFBEARER})" \
         -H "Content-Type:application/json"
 )
 if ! [ -z ${DEBUG+x} ]; then
@@ -112,7 +112,7 @@ unset OUTPUT
 # GET CNAMEs from Domain
 OUTPUT=$(
     curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONEID/dns_records?type=CNAME&match=all" \
-        -H "Authorization: Bearer ${CFBEARER}" \
+        -H @<(echo "Authorization: Bearer ${CFBEARER})" \
         -H "Content-Type:application/json"
 )
 
@@ -136,7 +136,7 @@ until [ "$(jq -er '.host ' <<<"${OUTPUT}")" ]; do
             -H "customerUri: ${CUSTOMER_URI}" \
             -H 'Content-Type: application/json;charset=utf-8' \
             -H "login: ${LOGIN}" \
-            -H "password: ${PASSWORD}" \
+            -H @<(echo "password: ${PASSWORD}") \
             -d '{"domain":"'"$DOMAIN"'"}'
     )
 
@@ -162,7 +162,7 @@ echo "ok"
 echo -n "Cloudflare: Add DCV CNAME to $DOMAIN in Cloudflare: "
 OUTPUT=$(
     curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONEID/dns_records" \
-        -H "Authorization: Bearer ${CFBEARER}" \
+        -H @<(echo "Authorization: Bearer ${CFBEARER})" \
         -H "Content-Type:application/json" \
         --data '{"type":"CNAME","name":"'"$CNAME_HOST"'","content":"'"$CNAME_POINT"'","ttl":120}'
 )
@@ -182,7 +182,7 @@ OUTPUT=$(
         -H "customerUri: ${CUSTOMER_URI}" \
         -H 'Content-Type: application/json;charset=utf-8' \
         -H "login: ${LOGIN}" \
-        -H "password: ${PASSWORD}" \
+        -H @<(echo "password: ${PASSWORD}") \
         -d '{"domain":"'"$DOMAIN"'"}'
 )
 if ! [ -z ${DEBUG+x} ]; then
